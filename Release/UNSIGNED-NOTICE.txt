@@ -1,0 +1,15 @@
+JimiDeck 0.1.0 Alpha — unsigned community build
+
+This build is not signed or notarized because the project does not currently
+have paid platform signing certificates.
+
+macOS may block the first launch. To proceed, Control-click JimiDeck.app,
+choose Open, then confirm Open. On newer macOS versions you may instead need
+System Settings > Privacy & Security > Open Anyway.
+
+Only download JimiDeck from the project's official website or repository.
+Verify the SHA-256 checksums published beside the download before opening it.
+
+JimiDeck stores instance metadata locally. Desktop instance isolation is a
+compatibility feature and may require an update after the official ChatGPT app
+changes.

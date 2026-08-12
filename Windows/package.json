@@ -1,0 +1,57 @@
+{
+  "name": "jimideck-windows",
+  "version": "0.1.0",
+  "description": "JimiDeck Codex instance manager for Windows",
+  "main": "main.js",
+  "author": "JimiDeck",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist:windows": "electron-builder --win nsis zip --x64"
+  },
+  "devDependencies": {
+    "electron": "43.2.0",
+    "electron-builder": "26.0.12"
+  },
+  "build": {
+    "appId": "com.jimidou.JimiDeck",
+    "productName": "JimiDeck",
+    "asar": true,
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "assets/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../Release/UNSIGNED-NOTICE-Windows.txt",
+        "to": "README-FIRST.txt"
+      }
+    ],
+    "directories": {
+      "output": "../dist/windows",
+      "buildResources": "assets"
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "artifactName": "JimiDeck-${version}-Alpha-Windows-${arch}.${ext}",
+      "electronLanguages": [
+        "en-US",
+        "zh-CN"
+      ],
+      "target": [
+        "nsis",
+        "zip"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "JimiDeck"
+    }
+  }
+}

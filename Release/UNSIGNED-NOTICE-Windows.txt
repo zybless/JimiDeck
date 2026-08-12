@@ -1,0 +1,19 @@
+JimiDeck 0.1.0 Alpha — unsigned community build
+
+This Windows build is not code-signed. Microsoft Defender SmartScreen may show
+an "Unknown publisher" warning. Choose More info > Run anyway only if you
+downloaded the file from the project's official website or repository and the
+published SHA-256 checksum matches.
+
+Windows Alpha feature boundary:
+- Launches the system ChatGPT Desktop app.
+- Supports independent Codex CLI profiles through separate CODEX_HOME folders.
+- Does not create named ChatGPT Desktop profiles because the Windows app does
+  not expose a stable public interface for external per-profile launching.
+
+Requirements:
+- Windows 10 or Windows 11, x64.
+- ChatGPT Windows app for Desktop launching.
+- The `codex` command available in PATH for CLI launching.
+
+JimiDeck stores instance metadata locally under the current Windows user.

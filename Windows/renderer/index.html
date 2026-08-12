@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:" />
+    <title>JimiDeck</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <img src="../assets/icon.png" alt="" />
+        <div><h1>JimiDeck</h1><p>Codex Instance Manager</p></div>
+      </div>
+      <div class="header-actions">
+        <button id="create-button" class="icon-button" title="创建 CLI 实例">＋</button>
+        <button id="settings-button" class="icon-button" title="设置与诊断">⚙</button>
+      </div>
+    </header>
+
+    <main>
+      <div id="notice" class="notice hidden"></div>
+      <section id="cards" class="cards"></section>
+      <p class="platform-note">Windows Alpha 支持默认 ChatGPT Desktop 和独立 Codex CLI Profile。Windows Desktop 自定义多实例暂未开放。</p>
+    </main>
+
+    <dialog id="create-dialog">
+      <form id="create-form">
+        <div class="dialog-header"><h2>创建 Codex CLI</h2><button type="button" class="close-button">取消</button></div>
+        <div class="dialog-content">
+          <div class="type-card"><span class="type-icon">&gt;_</span><div><strong>CLI</strong><p>独立的 CODEX_HOME 和登录状态</p></div></div>
+          <label for="instance-name">名称</label>
+          <input id="instance-name" maxlength="60" placeholder="例如：Work" autocomplete="off" required />
+          <p class="help">显示名称可以重复，底层 Profile ID 始终唯一。</p>
+        </div>
+        <div class="dialog-footer"><button type="submit" class="primary">创建</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="settings-dialog" class="settings-dialog">
+      <div class="dialog-header"><h2>设置</h2><button type="button" class="close-button">完成</button></div>
+      <div class="settings-layout">
+        <nav><button data-section="instances" class="selected">实例管理</button><button data-section="diagnostics">诊断</button><button data-section="about">关于</button></nav>
+        <section id="settings-content"></section>
+      </div>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
