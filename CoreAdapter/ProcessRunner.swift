@@ -28,11 +28,17 @@ struct ProcessRunner: Sendable {
             process.environment = ProcessInfo.processInfo.environment.merging(environment) { _, new in new }
 
             try process.run()
+            let stdoutTask = Task.detached {
+                stdout.fileHandleForReading.readDataToEndOfFile()
+            }
+            let stderrTask = Task.detached {
+                stderr.fileHandleForReading.readDataToEndOfFile()
+            }
             process.waitUntilExit()
 
             return ProcessResult(
-                stdout: stdout.fileHandleForReading.readDataToEndOfFile(),
-                stderr: stderr.fileHandleForReading.readDataToEndOfFile(),
+                stdout: await stdoutTask.value,
+                stderr: await stderrTask.value,
                 exitCode: process.terminationStatus
             )
         }.value

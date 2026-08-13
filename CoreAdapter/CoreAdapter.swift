@@ -16,6 +16,7 @@ enum JimiDeckError: LocalizedError, Equatable {
     case coreFailure(String)
     case invalidName
     case unmanagedProfile
+    case profileMissing
     case desktopNotInstalled
     case cliNotInstalled
     case projectMissing
@@ -30,7 +31,9 @@ enum JimiDeckError: LocalizedError, Equatable {
         case .invalidName:
             "请输入实例名称。"
         case .unmanagedProfile:
-            "JimiDeck 拒绝删除不属于自己的 Profile。"
+            "该 Profile 不属于当前可管理范围。"
+        case .profileMissing:
+            "这个 Profile 已不存在，请重新扫描后再试。"
         case .desktopNotInstalled:
             "未检测到 ChatGPT Desktop。"
         case .cliNotInstalled:

@@ -81,66 +81,118 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
 private struct InstanceManagementView: View {
     @EnvironmentObject private var model: AppModel
     @State private var deleting: CodexInstance?
+    @State private var detaching: CodexInstance?
     @State private var editing: CodexInstance?
+    @State private var importingProfileID: String?
     @State private var editedName = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("实例管理")
-                .font(.title2.weight(.semibold))
+            HStack {
+                Text("实例管理")
+                    .font(.title2.weight(.semibold))
+                Spacer()
+                Button {
+                    Task { await model.refreshProfiles(reportErrors: true) }
+                } label: {
+                    Label("重新扫描", systemImage: "arrow.clockwise")
+                }
+                .disabled(model.isWorking)
+            }
             Group {
-                if model.instances.isEmpty {
+                if model.instances.isEmpty && model.externalProfiles.isEmpty {
                     ContentUnavailableView(
-                        "没有自建实例",
+                        "没有自定义实例",
                         systemImage: "rectangle.stack",
-                        description: Text("在主窗口点击 + 创建第一个实例。")
+                        description: Text("在主窗口创建实例，或重新扫描命令行 Profile。")
                     )
                 } else {
-                    List(model.instances) { instance in
-                        HStack(spacing: 12) {
-                            Image(systemName: instance.type.symbolName)
-                                .font(.system(size: 18, weight: .medium))
-                                .foregroundStyle(Color.accentColor)
-                                .frame(width: 34, height: 34)
-                                .background(.quaternary, in: RoundedRectangle(cornerRadius: 9))
+                    List {
+                        if !model.instances.isEmpty {
+                            Section("已管理") {
+                                ForEach(model.instances) { instance in
+                                    HStack(spacing: 12) {
+                                        Image(systemName: instance.type.symbolName)
+                                            .font(.system(size: 18, weight: .medium))
+                                            .foregroundStyle(Color.accentColor)
+                                            .frame(width: 34, height: 34)
+                                            .background(.quaternary, in: RoundedRectangle(cornerRadius: 9))
 
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack(spacing: 8) {
-                                    Text(instance.displayName)
-                                        .font(.body.weight(.medium))
-                                    Text(instance.type.title)
-                                        .font(.caption2.weight(.medium))
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
-                                        .background(.quaternary, in: Capsule())
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            HStack(spacing: 8) {
+                                                Text(instance.displayName)
+                                                    .font(.body.weight(.medium))
+                                                InstanceTag(instance.type.title)
+                                                if instance.isImported {
+                                                    InstanceTag("外部导入")
+                                                }
+                                            }
+                                            Text(instance.profileId)
+                                                .font(.caption.monospaced())
+                                                .foregroundStyle(.secondary)
+                                                .lineLimit(1)
+                                                .truncationMode(.middle)
+                                                .textSelection(.enabled)
+                                        }
+
+                                        Spacer(minLength: 12)
+
+                                        Menu {
+                                            Button("重命名") {
+                                                editedName = instance.displayName
+                                                editing = instance
+                                            }
+                                            Divider()
+                                            if instance.isImported {
+                                                Button("仅从 JimiDeck 移除") {
+                                                    detaching = instance
+                                                }
+                                                Button("删除底层 Profile", role: .destructive) {
+                                                    deleting = instance
+                                                }
+                                            } else {
+                                                Button("删除", role: .destructive) {
+                                                    deleting = instance
+                                                }
+                                            }
+                                        } label: {
+                                            Image(systemName: "ellipsis.circle")
+                                                .font(.title3)
+                                        }
+                                        .menuStyle(.borderlessButton)
+                                        .fixedSize()
+                                    }
+                                    .padding(.vertical, 5)
                                 }
-                                Text(instance.profileId)
-                                    .font(.caption.monospaced())
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                                    .textSelection(.enabled)
                             }
-
-                            Spacer(minLength: 12)
-
-                            Menu {
-                                Button("重命名") {
-                                    editedName = instance.displayName
-                                    editing = instance
-                                }
-                                Divider()
-                                Button("删除", role: .destructive) {
-                                    deleting = instance
-                                }
-                            } label: {
-                                Image(systemName: "ellipsis.circle")
-                                    .font(.title3)
-                            }
-                            .menuStyle(.borderlessButton)
-                            .fixedSize()
                         }
-                        .padding(.vertical, 5)
+
+                        if !model.externalProfiles.isEmpty {
+                            Section("发现的命令行 Profile") {
+                                ForEach(model.externalProfiles, id: \.self) { profileID in
+                                    HStack(spacing: 12) {
+                                        Image(systemName: "rectangle.stack.badge.plus")
+                                            .font(.system(size: 18, weight: .medium))
+                                            .foregroundStyle(.secondary)
+                                            .frame(width: 34, height: 34)
+                                            .background(.quaternary, in: RoundedRectangle(cornerRadius: 9))
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(profileID)
+                                                .font(.body.monospaced().weight(.medium))
+                                            Text("选择 Desktop 或 CLI 后导入，不复制现有数据")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                        Spacer()
+                                        Button("导入") {
+                                            importingProfileID = profileID
+                                        }
+                                        .buttonStyle(.bordered)
+                                    }
+                                    .padding(.vertical, 5)
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -152,7 +204,7 @@ private struct InstanceManagementView: View {
             isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
             titleVisibility: .visible
         ) {
-            Button("永久删除实例", role: .destructive) {
+            Button(deleting?.isImported == true ? "永久删除底层 Profile" : "永久删除实例", role: .destructive) {
                 guard let deleting else { return }
                 Task {
                     _ = await model.remove(deleting)
@@ -161,7 +213,30 @@ private struct InstanceManagementView: View {
             }
             Button("取消", role: .cancel) { deleting = nil }
         } message: {
-            Text("这会删除该实例的本地 Profile 数据和登录状态，但不会删除任何项目代码。")
+            if deleting?.isImported == true {
+                Text(
+                    "请先关闭使用该 Profile 的 ChatGPT 或终端窗口。这会从 codex-profile 中永久删除该 Profile、"
+                        + "本地数据和登录状态；若只想停止管理，请选择“仅从 JimiDeck 移除”。"
+                )
+            } else {
+                Text("请先关闭使用该实例的 ChatGPT 或终端窗口。这会删除本地 Profile 数据和登录状态，但不会删除任何项目代码。")
+            }
+        }
+        .confirmationDialog(
+            "从 JimiDeck 移除“\(detaching?.displayName ?? "")”？",
+            isPresented: Binding(get: { detaching != nil }, set: { if !$0 { detaching = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button("仅移除管理记录") {
+                guard let detaching else { return }
+                Task {
+                    _ = await model.detachImportedProfile(detaching)
+                    self.detaching = nil
+                }
+            }
+            Button("取消", role: .cancel) { detaching = nil }
+        } message: {
+            Text("底层 Profile“\(detaching?.profileId ?? "")”及登录状态会保留，并会重新出现在待导入列表中。")
         }
         .sheet(item: $editing) { instance in
             VStack(spacing: 0) {
@@ -196,6 +271,112 @@ private struct InstanceManagementView: View {
             }
             .frame(minWidth: 420, minHeight: 190)
         }
+        .sheet(
+            isPresented: Binding(
+                get: { importingProfileID != nil },
+                set: { if !$0 { importingProfileID = nil } }
+            )
+        ) {
+            if let importingProfileID {
+                ImportProfileView(profileID: importingProfileID)
+                    .environmentObject(model)
+            }
+        }
+    }
+}
+
+private struct InstanceTag: View {
+    let text: String
+
+    init(_ text: String) {
+        self.text = text
+    }
+
+    var body: some View {
+        Text(text)
+            .font(.caption2.weight(.medium))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(.quaternary, in: Capsule())
+    }
+}
+
+private struct ImportProfileView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var model: AppModel
+    let profileID: String
+    @State private var selectedType: CodexInstanceType?
+    @State private var name: String
+
+    init(profileID: String) {
+        self.profileID = profileID
+        _name = State(initialValue: profileID)
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("导入 Profile")
+                    .font(.title2.weight(.semibold))
+                Spacer()
+                Button("取消") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+            }
+            .padding(20)
+
+            Divider()
+
+            Form {
+                LabeledContent("底层 Profile") {
+                    Text(profileID)
+                        .font(.body.monospaced())
+                        .textSelection(.enabled)
+                }
+                TextField("显示名称", text: $name)
+                Picker("实例类型", selection: $selectedType) {
+                    Text("请选择").tag(CodexInstanceType?.none)
+                    ForEach(CodexInstanceType.allCases) { type in
+                        Text(typeIsAvailable(type) ? type.title : "\(type.title)（当前不可用）")
+                            .tag(Optional(type))
+                            .disabled(!typeIsAvailable(type))
+                    }
+                }
+                Text("导入不会移动或复制 Profile。类型导入后固定，但显示名称可以随时修改。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .formStyle(.grouped)
+            .padding(.horizontal, 8)
+
+            Divider()
+
+            HStack {
+                Spacer()
+                Button("导入") {
+                    guard let selectedType else { return }
+                    Task {
+                        if await model.importProfile(profileID: profileID, name: name, type: selectedType) {
+                            dismiss()
+                        }
+                    }
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(
+                    selectedType == nil
+                        || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        || model.isWorking
+                )
+            }
+            .padding(16)
+        }
+        .frame(minWidth: 520, minHeight: 360)
+    }
+
+    private func typeIsAvailable(_ type: CodexInstanceType) -> Bool {
+        switch type {
+        case .desktop: model.environment.desktop.found
+        case .cli: model.environment.cli.found
+        }
     }
 }
 
@@ -209,9 +390,23 @@ private struct DiagnosticsView: View {
                     Text("环境诊断")
                         .font(.title2.weight(.semibold))
                     Spacer()
+                    Button("打开数据目录") {
+                        let directory = AppSupportPaths.root()
+                        try? FileManager.default.createDirectory(
+                            at: directory,
+                            withIntermediateDirectories: true,
+                            attributes: [.posixPermissions: 0o700]
+                        )
+                        NSWorkspace.shared.open(directory)
+                    }
+                    Button("复制诊断信息") {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(diagnosticSummary, forType: .string)
+                    }
                     Button("重新检测") {
                         Task { await model.refreshEnvironment() }
                     }
+                    .disabled(model.isWorking)
                 }
 
                 VStack(spacing: 0) {
@@ -249,6 +444,22 @@ private struct DiagnosticsView: View {
             .padding(24)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    private var diagnosticSummary: String {
+        let report = model.environment
+        return """
+            JimiDeck \(Bundle.main.releaseVersion) Alpha
+            Core: \(report.coreVersion)
+            Core path: \(report.corePath)
+            ChatGPT Desktop: \(report.desktop.found ? "available" : "unavailable")
+            Desktop path: \(report.desktop.appPath ?? "—")
+            Codex CLI: \(report.cli.found ? "available" : "unavailable")
+            CLI version: \(report.cli.version ?? "—")
+            CLI source: \(report.cli.source ?? "—")
+            Managed instances: \(model.instances.count)
+            Discovered external profiles: \(model.externalProfiles.count)
+            """
     }
 }
 
@@ -307,6 +518,6 @@ private struct AboutView: View {
 
 extension Bundle {
     fileprivate var releaseVersion: String {
-        object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.0"
+        object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.2.0"
     }
 }

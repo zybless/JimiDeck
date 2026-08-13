@@ -18,11 +18,10 @@ struct CodexProfilesCLIAdapter: CoreAdapter {
         return result.stdoutString
             .split(whereSeparator: \.isNewline)
             .map(String.init)
-            .filter(ProfileID.isManaged)
     }
 
     func removeProfile(_ profileID: String) async throws {
-        guard ProfileID.isManaged(profileID) else { throw JimiDeckError.unmanagedProfile }
+        guard profileID != "default" else { throw JimiDeckError.unmanagedProfile }
         _ = try await runCore(["remove", profileID, "--yes"])
     }
 

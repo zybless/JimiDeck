@@ -37,6 +37,7 @@ struct CodexInstance: Codable, Identifiable, Hashable, Sendable {
     var lastUsedAt: Date?
 
     var isSystem: Bool { profileId == "default" }
+    var isImported: Bool { !isSystem && !ProfileID.isManaged(profileId) }
 
     static let defaultDesktop = CodexInstance(
         id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
