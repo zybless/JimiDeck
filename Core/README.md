@@ -1,9 +1,14 @@
-# Core runtime
+# Compatibility runtime
 
-The reviewed `codex-profile` v0.7.0 executable is pinned in this directory as `codex-profile`.
+This directory contains the macOS profile runtime used by `CodexProfilesCLIAdapter`.
 
-- Upstream tag: `v0.7.0`
-- SHA-256: `d85f8a3cb479578d7d8cb436daec6c57f36b7a9a139558ed756501896ea58b2b`
-- Source: `https://github.com/Ducksss/codex-profiles`
+| Field | Value |
+| --- | --- |
+| Upstream | [`Ducksss/codex-profiles`](https://github.com/Ducksss/codex-profiles) |
+| Version | `v0.7.0` |
+| SHA-256 | `d85f8a3cb479578d7d8cb436daec6c57f36b7a9a139558ed756501896ea58b2b` |
+| License | MIT |
 
-During development JimiDeck can fall back to `/opt/homebrew/bin/codex-profile` or `/usr/local/bin/codex-profile` if the bundled resource is absent. The UI never invokes shell commands directly; every Core operation goes through `CodexProfilesCLIAdapter`.
+Development builds may use `/opt/homebrew/bin/codex-profile` or `/usr/local/bin/codex-profile` when the bundled resource is unavailable. UI code does not call the runtime directly; argument mapping and error translation stay in the adapter.
+
+See the repository [Third-Party Notices](../THIRD_PARTY_NOTICES.md) for distribution details.

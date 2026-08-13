@@ -1,88 +1,100 @@
-# JimiDeck
+<p align="center">
+  <img src="Assets.xcassets/AppIcon.appiconset/appicon-256.png" width="112" alt="JimiDeck icon">
+</p>
 
-JimiDeck 是一个跨平台的 Codex 实例管理器，用来分开工作、个人及不同项目的登录状态和本地配置。
+<h1 align="center">JimiDeck</h1>
 
-当前版本为 **0.2.0 Alpha**。软件完全在本地管理实例元数据，不提供云端账号服务。
+<p align="center">
+  One launcher for your ChatGPT Desktop and Codex CLI profiles.
+</p>
 
-> 仓库边界：本仓库只包含桌面 App。官网源码和静态产物严格位于独立的 `site/JimiDeck` 项目中，禁止把网站代码、依赖或构建目录放入 App 仓库。
+<p align="center">
+  <a href="README.zh-CN.md">简体中文</a> ·
+  <a href="https://deck.jimidou.com">Website</a> ·
+  <a href="https://github.com/zybless/JimiDeck/releases">Releases</a>
+</p>
 
-## 平台支持
+<p align="center">
+  <a href="https://github.com/zybless/JimiDeck/actions/workflows/ci.yml"><img src="https://github.com/zybless/JimiDeck/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-2ea44f" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/release-0.2.0--alpha-orange" alt="0.2.0 Alpha">
+</p>
 
-| 功能 | macOS | Windows |
-|---|---:|---:|
-| 启动系统默认 ChatGPT Desktop | ✓ | ✓ |
-| 自定义 ChatGPT Desktop 多实例 | ✓ 兼容层 | 暂不支持 |
-| 导入已有 `codex-profile` | ✓ | 暂不支持 |
-| 系统默认 Codex CLI | ✓ | ✓ |
-| 独立 Codex CLI Profile | ✓ | ✓ |
-| CLI 项目目录选择 | ✓ | ✓ |
+JimiDeck keeps multiple Codex contexts close at hand. Give each profile a clear name, open it from one window, and keep work, personal, and project state in separate local directories.
 
-macOS 使用原生 SwiftUI/AppKit 实现；Windows 使用 Electron/PowerShell 实现。两端共享产品行为、Profile 命名和安全边界，但平台 UI 与启动适配代码不同。
+## Highlights
 
-macOS 会在设置中发现由命令行创建的 Profile。导入时需要明确选择 Desktop 或 CLI；导入不会复制或迁移底层数据。外部 Profile 可仅从 JimiDeck 移除，也可在明确确认后连同底层数据一起删除。
+- Launch the default environment and named profiles from one place.
+- Manage ChatGPT Desktop profiles on macOS and Codex CLI profiles on macOS and Windows.
+- Import profiles created with `codex-profile` into the desktop app.
+- Open CLI profiles in a selected or recently used project directory.
+- Diagnose missing runtimes, invalid paths, and incomplete profiles before launch.
+- Keep profile metadata on the local machine. JimiDeck has no account service and does not inspect authentication tokens.
 
-实例清单和最近项目保存在用户应用数据目录，并维护原子写入的本地备份。主数据损坏时会自动恢复；诊断页可打开数据目录并复制不含登录令牌的环境摘要。
+## Platform support
 
-Windows 官方 ChatGPT App 原生支持 PowerShell，但目前没有面向外部应用公开稳定的“指定独立 Desktop Profile 启动”接口，因此 Windows Alpha 暂不提供自定义 Desktop 多实例。
+| Capability | macOS 14+ | Windows 10/11 x64 |
+| --- | --- | --- |
+| ChatGPT Desktop profiles | Yes | Default profile only |
+| Codex CLI profiles | Yes | Yes |
+| Import existing `codex-profile` profiles | Yes | Planned |
+| App UI | Native SwiftUI | Electron |
 
-## 下载与安装
+JimiDeck is currently alpha software. Windows support focuses on Codex CLI profiles because ChatGPT Desktop does not expose the same profile-directory launch mechanism there.
 
-发布目录会生成四种文件：
+## Install
 
-- `JimiDeck-0.2.0-Alpha-macOS-universal.dmg`
-- `JimiDeck-0.2.0-Alpha-macOS-universal.zip`
-- `JimiDeck-0.2.0-Alpha-Windows-x64.exe`
-- `JimiDeck-0.2.0-Alpha-Windows-x64.zip`
+Download the latest artifact from the [release page](https://github.com/zybless/JimiDeck/releases) or the [JimiDeck website](https://deck.jimidou.com).
 
-项目目前没有付费的 Apple Developer 或 Windows Code Signing 证书，所以公开包均为无认证发布。下载后请先对照旁边的 `SHA256SUMS` 文件校验哈希。
+| Platform | Format | Use case |
+| --- | --- | --- |
+| macOS | `.dmg` | Standard installation |
+| macOS | `.zip` | Portable archive |
+| Windows | `.exe` | Standard installation |
+| Windows | `.zip` | Portable archive |
+
+Current alpha builds are unsigned. Verify the published SHA-256 checksum before opening a downloaded artifact.
+
+## Build from source
 
 ### macOS
 
-支持 macOS 14 及以上、Apple Silicon 与 Intel Mac。首次启动若被拦截：
-
-1. 按住 Control 点击 `JimiDeck.app`，选择“打开”；
-2. 再次确认“打开”；
-3. 若仍被拦截，前往“系统设置 → 隐私与安全性 → 仍要打开”。
-
-### Windows
-
-支持 Windows 10/11 x64。SmartScreen 显示“未知发布者”时，只在哈希核对无误后选择“更多信息 → 仍要运行”。
-
-使用 CLI 实例前需确保 `codex` 命令已加入 PATH；Desktop 入口需要安装官方 ChatGPT Windows App。
-
-## 参考项目与第三方许可
-
-macOS 的 Profile 隔离 Core 参考并内置了固定版本的 [`Ducksss/codex-profiles`](https://github.com/Ducksss/codex-profiles) `v0.7.0`，SHA-256：
-
-```text
-d85f8a3cb479578d7d8cb436daec6c57f36b7a9a139558ed756501896ea58b2b
-```
-
-其 MIT License 位于 `THIRD_PARTY_LICENSES/`。JimiDeck 的产品界面不展示上游项目宣传信息，所有上游调用均经过独立 Adapter。
-
-## 本地开发
-
-macOS：
+Requirements: Xcode 16 or later and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
 
 ```bash
 xcodegen generate
-xcodebuild -project JimiDeck.xcodeproj -scheme JimiDeck -configuration Debug build CODE_SIGNING_ALLOWED=NO
+xcodebuild test \
+  -project JimiDeck.xcodeproj \
+  -scheme JimiDeck \
+  -destination 'platform=macOS' \
+  CODE_SIGNING_ALLOWED=NO
 ```
 
-Windows 外壳：
+### Windows
 
-```bash
+Requirements: Node.js 22 LTS and npm.
+
+```powershell
 cd Windows
 npm ci
 npm run check
 npm start
 ```
 
-生成发布包：
+## How profile isolation works
 
-```bash
-./Scripts/package_macos.sh
-./Scripts/package_windows.sh
-```
+Each named profile receives its own data directory. JimiDeck passes that directory to the compatible launcher and records only the metadata needed to display and reopen it. This separation prevents routine state mixing; it is not an operating-system security sandbox.
 
-Windows 包可以在 macOS 上交叉生成，但发布前仍应在真实 Windows 10/11 x64 机器上做一次安装和启动测试。
+See [Architecture](ARCHITECTURE.md) for storage, launch, and deletion details.
+
+## Contributing
+
+Bug reports and focused pull requests are welcome. Start with [Contributing](CONTRIBUTING.md), review the [Code of Conduct](CODE_OF_CONDUCT.md), and report vulnerabilities through the process in [Security](SECURITY.md).
+
+## License
+
+JimiDeck is available under the [MIT License](LICENSE), including private and commercial use subject to its terms. The project name and logo are covered separately by the [trademark guidelines](TRADEMARKS.md). Bundled third-party components retain their own notices.
+
+## Acknowledgements
+
+The macOS compatibility layer builds on [`Ducksss/codex-profiles`](https://github.com/Ducksss/codex-profiles). Version and license details are recorded in [Third-Party Notices](THIRD_PARTY_NOTICES.md).

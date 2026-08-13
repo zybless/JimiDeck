@@ -1,11 +1,22 @@
-# JimiDeck 0.2.0 Alpha release
+# Release artifacts
 
-Upload the following artifacts from `dist/` to the website or repository release:
+Release staging produces four end-user packages and two checksum manifests under `dist/`.
 
-- macOS Universal DMG and ZIP
-- Windows x64 installer EXE and portable ZIP
-- both SHA-256 checksum files
+| Platform | Package | Architecture |
+| --- | --- | --- |
+| macOS | DMG | Universal |
+| macOS | ZIP | Universal |
+| Windows | NSIS installer | x64 |
+| Windows | Portable ZIP | x64 |
 
-All four binaries are unsigned community builds. Keep the unsigned warning visible on the download page and label the release as Alpha.
+Build and stage the artifacts with:
 
-Do not claim that Windows supports named ChatGPT Desktop profiles. Windows supports the default Desktop entry and independent Codex CLI profiles.
+```bash
+Scripts/package_macos.sh
+Scripts/package_windows.sh
+node Scripts/stage_release.mjs
+```
+
+Before publishing, run the test suites, verify each SHA-256 manifest, install both standard packages on clean systems, and open both portable archives. Version numbers in `project.yml`, `Windows/package.json`, the website, and release notes should match.
+
+Version 0.2.0 Alpha artifacts are unsigned. The release page and download page should retain the unsigned-build notice. Current Windows support covers independent Codex CLI profiles and the default ChatGPT Desktop entry.
