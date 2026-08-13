@@ -1,0 +1,82 @@
+name: Bug report
+description: Report a reproducible problem in JimiDeck
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a problem. Remove account details, tokens, profile contents, and private paths before submitting.
+  - type: input
+    id: version
+    attributes:
+      label: JimiDeck version
+      placeholder: 0.2.0 Alpha
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS 14
+        - macOS 15
+        - macOS 26 or later
+        - Windows 10 x64
+        - Windows 11 x64
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: target
+    attributes:
+      label: Profile type
+      options:
+        - ChatGPT Desktop
+        - Codex CLI
+        - App interface or settings
+        - Installation or update
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide the shortest sequence that reproduces the problem.
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Paste redacted diagnostic output or attach a screenshot if it helps.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues for this problem.
+          required: true
+        - label: I removed credentials and private information from this report.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

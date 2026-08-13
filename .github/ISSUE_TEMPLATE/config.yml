@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/zybless/JimiDeck/security/advisories/new
+    about: Report security issues privately.
+  - name: JimiDeck website
+    url: https://deck.jimidou.com
+    about: Read the product overview and download the latest release.

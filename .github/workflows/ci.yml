@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Check repository boundaries
+        run: Scripts/check_project_boundaries.sh
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Lint Swift
+        run: xcrun swift-format lint --strict --recursive App CoreAdapter Models Services Views JimiDeckTests
+
+      - name: Test
+        run: >-
+          xcodebuild test
+          -project JimiDeck.xcodeproj
+          -scheme JimiDeck
+          -destination 'platform=macOS'
+          CODE_SIGNING_ALLOWED=NO
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: Windows
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Windows/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check and test
+        run: npm run check
