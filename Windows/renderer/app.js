@@ -137,7 +137,7 @@ function renderSettings(section) {
       <div class="diagnostic"><span>CLI 路径</span><span class="profile-id">${diagnostics.cliPath}</span></div>
       <p class="platform-note">Windows Desktop 自定义多实例没有公开稳定接口；当前 Alpha 仅启动系统默认 Desktop。</p>`;
   } else {
-    settingsContent.innerHTML = `<div class="about"><img src="../assets/icon.png" alt=""><h2>JimiDeck</h2><p>Codex Instance Manager</p><p>Version 0.1.0 Alpha</p><p>© 2026 JimiDeck</p></div>`;
+    settingsContent.innerHTML = `<div class="about"><img src="../assets/icon.png" alt=""><h2>JimiDeck</h2><p>Codex Instance Manager</p><p>Version 0.2.0 Alpha</p><p>© 2026 JimiDeck</p></div>`;
   }
 }
 

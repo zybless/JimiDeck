@@ -3,8 +3,9 @@ const { execFile, spawn } = require("node:child_process");
 const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
-const { promisify } = require("node:util");
 const crypto = require("node:crypto");
+const { promisify } = require("node:util");
+const { loadArrayWithBackup, saveArrayWithBackup } = require("./storage");
 
 const execFileAsync = promisify(execFile);
 const profilePattern = /^jimideck-cli-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -24,29 +25,44 @@ function isManaged(profileId) {
 }
 
 async function loadInstances() {
+  const result = await loadArrayWithBackup(instancesFile());
+  const instances = result.values.filter((value) => isManaged(value.profileId));
+  const knownProfiles = new Set(instances.map((instance) => instance.profileId));
+  let entries;
   try {
-    const values = JSON.parse(await fs.readFile(instancesFile(), "utf8"));
-    return Array.isArray(values) ? values.filter((value) => isManaged(value.profileId)) : [];
-  } catch (error) {
-    if (error.code === "ENOENT") return [];
-    throw error;
+    entries = await fs.readdir(os.homedir(), { withFileTypes: true });
+  } catch {
+    return instances;
   }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory() || !entry.name.startsWith(".codex-")) continue;
+    const profileId = entry.name.slice(".codex-".length);
+    if (!isManaged(profileId) || knownProfiles.has(profileId)) continue;
+    instances.push({
+      id: profileId.slice("jimideck-cli-".length),
+      displayName: "恢复的 CLI",
+      type: "cli",
+      profileId,
+      createdAt: new Date().toISOString()
+    });
+    knownProfiles.add(profileId);
+  }
+
+  if (instances.length !== result.values.length) await saveInstances(instances);
+  return instances;
 }
 
 async function saveInstances(values) {
-  const destination = instancesFile();
-  await fs.mkdir(path.dirname(destination), { recursive: true });
-  const temporary = `${destination}.${crypto.randomUUID()}.tmp`;
-  await fs.writeFile(temporary, `${JSON.stringify(values, null, 2)}\n`, { mode: 0o600 });
-  await fs.rename(temporary, destination);
+  await saveArrayWithBackup(instancesFile(), values);
 }
 
 function safeManagedHome(profileId) {
-  if (!isManaged(profileId)) throw new Error("拒绝操作非 JimiDeck 管理的 Profile。");
+  if (!isManaged(profileId)) throw new Error("该 Profile 不属于当前可管理范围。");
   const home = path.resolve(profileHome(profileId));
   const parent = path.resolve(os.homedir());
   if (path.dirname(home).toLowerCase() !== parent.toLowerCase()) {
-    throw new Error("Profile 路径超出用户目录，已拒绝操作。");
+    throw new Error("Profile 路径超出用户目录，操作已取消。");
   }
   return home;
 }
@@ -80,14 +96,20 @@ async function removeProfile(profileId) {
   const home = safeManagedHome(profileId);
   try {
     const stat = await fs.lstat(home);
-    if (stat.isSymbolicLink()) throw new Error("拒绝删除符号链接 Profile。");
+    if (stat.isSymbolicLink()) throw new Error("不能删除符号链接形式的 Profile。");
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
   }
 
   const instances = await loadInstances();
-  await fs.rm(home, { recursive: true, force: true });
-  await saveInstances(instances.filter((instance) => instance.profileId !== profileId));
+  const updated = instances.filter((instance) => instance.profileId !== profileId);
+  await saveInstances(updated);
+  try {
+    await fs.rm(home, { recursive: true, force: true });
+  } catch (error) {
+    await saveInstances(instances).catch(() => {});
+    throw error;
+  }
 }
 
 function spawnPowerShell(argumentsList, options = {}) {

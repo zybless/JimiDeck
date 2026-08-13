@@ -1,17 +1,18 @@
 {
   "name": "jimideck-windows",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "JimiDeck Codex instance manager for Windows",
   "main": "main.js",
   "author": "JimiDeck",
   "license": "MIT",
   "scripts": {
     "start": "electron .",
+    "check": "node --check main.js && node --check preload.js && node --check renderer/app.js && node --test test/*.test.js",
     "dist:windows": "electron-builder --win nsis zip --x64"
   },
   "devDependencies": {
-    "electron": "43.2.0",
-    "electron-builder": "26.0.12"
+    "electron": "43.4.0",
+    "electron-builder": "26.15.3"
   },
   "build": {
     "appId": "com.jimidou.JimiDeck",
@@ -19,6 +20,7 @@
     "asar": true,
     "files": [
       "main.js",
+      "storage.js",
       "preload.js",
       "renderer/**/*",
       "assets/**/*"
