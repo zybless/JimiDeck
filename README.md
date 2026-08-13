@@ -2,7 +2,9 @@
 
 JimiDeck 是一个跨平台的 Codex 实例管理器，用来分开工作、个人及不同项目的登录状态和本地配置。
 
-当前版本为 **0.1.0 Alpha**。软件完全在本地管理实例元数据，不提供云端账号服务。
+当前版本为 **0.2.0 Alpha**。软件完全在本地管理实例元数据，不提供云端账号服务。
+
+> 仓库边界：本仓库只包含桌面 App。官网源码和静态产物严格位于独立的 `site/JimiDeck` 项目中，禁止把网站代码、依赖或构建目录放入 App 仓库。
 
 ## 平台支持
 
@@ -10,22 +12,27 @@ JimiDeck 是一个跨平台的 Codex 实例管理器，用来分开工作、个�
 |---|---:|---:|
 | 启动系统默认 ChatGPT Desktop | ✓ | ✓ |
 | 自定义 ChatGPT Desktop 多实例 | ✓ 兼容层 | 暂不支持 |
+| 导入已有 `codex-profile` | ✓ | 暂不支持 |
 | 系统默认 Codex CLI | ✓ | ✓ |
 | 独立 Codex CLI Profile | ✓ | ✓ |
 | CLI 项目目录选择 | ✓ | ✓ |
 
 macOS 使用原生 SwiftUI/AppKit 实现；Windows 使用 Electron/PowerShell 实现。两端共享产品行为、Profile 命名和安全边界，但平台 UI 与启动适配代码不同。
 
-Windows 官方 ChatGPT App 原生支持 PowerShell，但目前没有面向外部应用公开稳定的“指定独立 Desktop Profile 启动”接口，因此 Windows Alpha 不伪造这个能力。
+macOS 会在设置中发现由命令行创建的 Profile。导入时需要明确选择 Desktop 或 CLI；导入不会复制或迁移底层数据。外部 Profile 可仅从 JimiDeck 移除，也可在明确确认后连同底层数据一起删除。
+
+实例清单和最近项目保存在用户应用数据目录，并维护原子写入的本地备份。主数据损坏时会自动恢复；诊断页可打开数据目录并复制不含登录令牌的环境摘要。
+
+Windows 官方 ChatGPT App 原生支持 PowerShell，但目前没有面向外部应用公开稳定的“指定独立 Desktop Profile 启动”接口，因此 Windows Alpha 暂不提供自定义 Desktop 多实例。
 
 ## 下载与安装
 
 发布目录会生成四种文件：
 
-- `JimiDeck-0.1.0-Alpha-macOS-universal.dmg`
-- `JimiDeck-0.1.0-Alpha-macOS-universal.zip`
-- `JimiDeck-0.1.0-Alpha-Windows-x64.exe`
-- `JimiDeck-0.1.0-Alpha-Windows-x64.zip`
+- `JimiDeck-0.2.0-Alpha-macOS-universal.dmg`
+- `JimiDeck-0.2.0-Alpha-macOS-universal.zip`
+- `JimiDeck-0.2.0-Alpha-Windows-x64.exe`
+- `JimiDeck-0.2.0-Alpha-Windows-x64.zip`
 
 项目目前没有付费的 Apple Developer 或 Windows Code Signing 证书，所以公开包均为无认证发布。下载后请先对照旁边的 `SHA256SUMS` 文件校验哈希。
 
@@ -67,6 +74,7 @@ Windows 外壳：
 ```bash
 cd Windows
 npm ci
+npm run check
 npm start
 ```
 

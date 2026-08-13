@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DIST_DIR="$ROOT_DIR/dist"
 DERIVED_DATA="$ROOT_DIR/.build/ReleaseDerivedData"
 APP_SOURCE="$DERIVED_DATA/Build/Products/Release/JimiDeck.app"
-VERSION="0.1.0"
+VERSION="0.2.0"
 ARTIFACT_BASE="JimiDeck-${VERSION}-Alpha-macOS-universal"
 ZIP_PATH="$DIST_DIR/${ARTIFACT_BASE}.zip"
 DMG_PATH="$DIST_DIR/${ARTIFACT_BASE}.dmg"
@@ -22,7 +22,17 @@ mkdir -p "$DIST_DIR"
 /bin/rm -f "$ZIP_PATH" "$DMG_PATH" "$CHECKSUM_PATH"
 
 cd "$ROOT_DIR"
+"$ROOT_DIR/Scripts/check_project_boundaries.sh"
 xcodegen generate
+xcrun swift-format lint --strict --recursive --parallel \
+    JimiDeck CoreAdapter Models Services Views JimiDeckTests
+xcodebuild \
+    -project JimiDeck.xcodeproj \
+    -scheme JimiDeck \
+    -destination "platform=macOS" \
+    -derivedDataPath "$DERIVED_DATA" \
+    CODE_SIGNING_ALLOWED=NO \
+    test
 xcodebuild \
     -project JimiDeck.xcodeproj \
     -scheme JimiDeck \

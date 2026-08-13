@@ -1,4 +1,4 @@
-JimiDeck 0.1.0 Alpha — unsigned community build
+JimiDeck 0.2.0 Alpha — unsigned community build
 
 This build is not signed or notarized because the project does not currently
 have paid platform signing certificates.

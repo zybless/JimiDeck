@@ -1,4 +1,4 @@
-JimiDeck 0.1.0 Alpha — unsigned community build
+JimiDeck 0.2.0 Alpha — unsigned community build
 
 This Windows build is not code-signed. Microsoft Defender SmartScreen may show
 an "Unknown publisher" warning. Choose More info > Run anyway only if you

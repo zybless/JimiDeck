@@ -1,4 +1,4 @@
-# JimiDeck 0.1.0 Alpha release
+# JimiDeck 0.2.0 Alpha release
 
 Upload the following artifacts from `dist/` to the website or repository release:
 
